@@ -311,24 +311,34 @@ jobs:
                       pages[surface] = page
 
                   rendered = rpc("plugin.render", {
-                      "surface": "settings_section:titlebar-icons",
-                      "values": {"show_feedback": False, "show_wrap": False},
+                      "surface": "settings_section:tarot-mode",
+                      "values": {"tarot_enabled": True},
                   })
                   check_text(rendered["page"], locale, f"{locale} toggle")
-                  require(hidden == {"feedback", "wrap"}, f"{locale}: expected hidden {{feedback, wrap}}, got {hidden}")
-                  require(storage.get("hidden_slots") == ["feedback", "wrap"], f"{locale}: storage not updated")
+                  require(tarot_state["enabled"] is True, f"{locale}: expected tarot_enabled True")
 
-                  act = rpc("plugin.action", {
-                      "surface": "settings_page",
-                      "action_id": "show_all",
-                      "values": {},
-                  })
-                  require(act.get("ok") is True, f"{locale}: show_all failed")
-                  check_text(act["status"], locale, f"{locale} show_all.status")
-                  check_text(act["page"], locale, f"{locale} show_all.page")
-                  require(hidden == set(), f"{locale}: show_all did not clear hidden")
+                  for act_id, expected_room in (
+                      ("open_table", "table"),
+                      ("open_daily", "daily"),
+                      ("open_deck", "deck"),
+                      ("open_writing", "writing"),
+                  ):
+                      act = rpc("plugin.action", {
+                          "surface": "settings_page",
+                          "action_id": act_id,
+                          "values": {},
+                      })
+                      require(act.get("ok") is True, f"{locale}: {act_id} failed")
+                      check_text(act["status"], locale, f"{locale} {act_id}.status")
+                      check_text(act["page"], locale, f"{locale} {act_id}.page")
+                      require(tarot_state["room"] == expected_room, f"{locale}: expected room {expected_room}, got {tarot_state['room']}")
 
-                  ev = rpc("plugin.event", {"event": "note.saved", "path": "welcome.md"})
+                  cmd = rpc("plugin.command", {"command_id": "toggle_tarot", "context": {"source": "titlebar"}})
+                  require(cmd.get("ok") is True, f"{locale}: toggle_tarot command failed")
+                  check_text(cmd.get("status", ""), locale, f"{locale} toggle_tarot.status")
+                  require(tarot_state["enabled"] is False, f"{locale}: expected toggle_tarot to disable")
+
+                  ev = rpc("plugin.event", {"event": "theme.changed", "tarot": True})
                   require("handled" in ev, f"{locale}: invalid plugin.event response")
 
                   require(rpc("plugin.shutdown").get("ok") is True, f"{locale}: shutdown failed")
@@ -378,7 +388,7 @@ jobs:
 
               surfaces = declared_surfaces(manifest)
               entry = resolve_entry_command(pkg_dir, manifest)
-              with TemporaryDirectory(prefix="block-titlebar-zh-") as tzh, TemporaryDirectory(prefix="block-titlebar-en-") as ten:
+              with TemporaryDirectory(prefix="block-tarot-zh-") as tzh, TemporaryDirectory(prefix="block-tarot-en-") as ten:
                   zh_pages = run_plugin(entry, pkg_dir, "zh", Path(tzh), plugin_id, surfaces)
                   en_pages = run_plugin(entry, pkg_dir, "en", Path(ten), plugin_id, surfaces)
               for surface in surfaces:
