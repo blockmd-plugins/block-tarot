@@ -28,6 +28,32 @@
     "ui:notify",
     "events:workspace"
   ],
+  "permission_reasons": {
+    "storage": {
+      "zh": "保存塔罗模式开关偏好，在重启后恢复状态",
+      "en": "Save Tarot Mode toggle preference across restarts"
+    },
+    "ui:titlebar": {
+      "zh": "在顶栏挂载塔罗模式月亮快捷切换按钮",
+      "en": "Show the Tarot Mode moon toggle button in the titlebar"
+    },
+    "ui:settings": {
+      "zh": "在外观设置中切换塔罗皮肤及进入牌桌、每日一牌与牌册房间",
+      "en": "Toggle Tarot skin in Appearance settings and open tarot ritual rooms"
+    },
+    "ui:commands": {
+      "zh": "向命令面板注册切换塔罗模式与打开各仪式房间的快捷命令",
+      "en": "Register command palette actions for Tarot Mode and ritual rooms"
+    },
+    "ui:notify": {
+      "zh": "切换塔罗模式或进入仪式房间时显示状态提示",
+      "en": "Show status feedback when toggling Tarot Mode or opening ritual rooms"
+    },
+    "events:workspace": {
+      "zh": "监听语言与主题切换事件，同步更新顶栏按钮与界面状态",
+      "en": "Listen to locale and theme change events to sync button and UI state"
+    }
+  },
   "surfaces": [
     "settings_page"
   ],
