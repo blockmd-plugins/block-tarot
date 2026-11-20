@@ -193,6 +193,16 @@ jobs:
               ]
               hidden = set()
               storage = {}
+              tarot_state = {
+                  "supported": True,
+                  "enabled": False,
+                  "room": "writing",
+                  "collected": 3,
+                  "total": 22,
+                  "daily_drawn": False,
+                  "daily_note": "",
+                  "active_note": "",
+              }
 
               def current_items():
                   en = locale.lower().startswith("en")
@@ -221,6 +231,23 @@ jobs:
                           if slot_id != "more":
                               hidden.add(slot_id)
                       return {"ok": True, "items": current_items()}
+                  if method == "host.titlebar.set_button":
+                      return {"ok": True}
+                  if method == "host.ui.refresh":
+                      return {"ok": True}
+                  if method == "host.ui.tarot_state":
+                      return dict(tarot_state)
+                  if method == "host.ui.set_tarot":
+                      if params.get("toggle"):
+                          tarot_state["enabled"] = not tarot_state["enabled"]
+                      elif "enabled" in params and params["enabled"] is not None:
+                          tarot_state["enabled"] = bool(params["enabled"])
+                      elif params.get("room"):
+                          tarot_state["enabled"] = True
+                      room = str(params.get("room") or "").strip().lower()
+                      if room in ("writing", "table", "daily", "deck"):
+                          tarot_state["room"] = room
+                      return dict(tarot_state)
                   raise ValueError(f"Unexpected host request: {method}")
 
               env = {k: os.environ[k] for k in ("PATH", "HOME", "TMPDIR", "LANG", "LC_ALL", "LC_CTYPE", "SYSTEMROOT", "COMSPEC") if k in os.environ}
