@@ -259,7 +259,7 @@ class TarotPlugin:
                 "cards": [
                     {
                         "id": "tarot-mode",
-                        "title": self._tr("塔罗模式", "Tarot Mode"),
+                        "title": "",
                         "items": control_items,
                     }
                 ],
@@ -467,6 +467,10 @@ class TarotPlugin:
 
         if method == "plugin.event":
             event_name = str(params.get("event") or "")
+            if event_name == "locale.changed" and params.get("locale"):
+                self.locale = str(params["locale"])
+                self._refresh_surfaces(bridge)
+                return {"handled": True}
             if event_name == "theme.changed":
                 if "tarot" in params:
                     enabled = bool(params.get("tarot"))
