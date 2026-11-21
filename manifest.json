@@ -6,7 +6,7 @@
     "zh": "塔罗模式",
     "en": "Tarot Mode"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "eachann1024",
   "repo": "eachann1024/block-tarot",
   "summary": {
@@ -23,7 +23,6 @@
   "permissions": [
     "storage",
     "ui:titlebar",
-    "ui:settings",
     "ui:commands",
     "ui:notify",
     "events:workspace"
@@ -36,10 +35,6 @@
     "ui:titlebar": {
       "zh": "在顶栏挂载塔罗模式月亮快捷切换按钮",
       "en": "Show the Tarot Mode moon toggle button in the titlebar"
-    },
-    "ui:settings": {
-      "zh": "在外观设置中切换塔罗皮肤及进入牌桌、每日一牌与牌册房间",
-      "en": "Toggle Tarot skin in Appearance settings and open tarot ritual rooms"
     },
     "ui:commands": {
       "zh": "向命令面板注册切换塔罗模式与打开各仪式房间的快捷命令",
@@ -78,16 +73,6 @@
           "en": "Tarot Mode"
         },
         "command": "toggle_tarot"
-      }
-    ],
-    "settings_sections": [
-      {
-        "id": "tarot-mode",
-        "tab": "appearance",
-        "title": {
-          "zh": "塔罗模式",
-          "en": "Tarot Mode"
-        }
       }
     ],
     "commands": [
