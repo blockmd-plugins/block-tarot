@@ -13,8 +13,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 STORAGE_KEY = "tarot_pref"
 SETTINGS_PAGE_SURFACE = "settings_page"
-SETTINGS_SECTION_SURFACE = "settings_section:tarot-mode"
-SUPPORTED_SURFACES = {SETTINGS_PAGE_SURFACE, SETTINGS_SECTION_SURFACE}
+SUPPORTED_SURFACES = {SETTINGS_PAGE_SURFACE}
 TITLEBAR_BUTTON_ID = "tarot-toggle"
 
 CHINESE_TEXT = re.compile(
@@ -173,11 +172,10 @@ class TarotPlugin:
             pass
 
     def _refresh_surfaces(self, bridge):
-        for surf in (SETTINGS_PAGE_SURFACE, SETTINGS_SECTION_SURFACE):
-            try:
-                bridge.call_host("host.ui.refresh", {"surface": surf})
-            except HostRPCError:
-                pass
+        try:
+            bridge.call_host("host.ui.refresh", {"surface": SETTINGS_PAGE_SURFACE})
+        except HostRPCError:
+            pass
 
     def _save_pref(self, bridge, enabled):
         self.cached_enabled = bool(enabled)
@@ -212,7 +210,7 @@ class TarotPlugin:
                 return st, False
             raise
 
-    def _build_page(self, surface, st, status=""):
+    def _build_page(self, st, status=""):
         enabled = bool(st["enabled"])
         collected = int(st["collected"])
         total = int(st["total"])
@@ -251,19 +249,6 @@ class TarotPlugin:
                 ],
             },
         ]
-
-        if surface == SETTINGS_SECTION_SURFACE:
-            return {
-                "title": self._tr("塔罗模式", "Tarot Mode"),
-                "status": status,
-                "cards": [
-                    {
-                        "id": "tarot-mode",
-                        "title": "",
-                        "items": control_items,
-                    }
-                ],
-            }
 
         daily_val = self._tr("已翻开", "Revealed") if daily_drawn else self._tr("未翻开", "Unopened")
         mode_val = self._tr("已开启", "Active") if enabled else self._tr("未开启", "Off")
@@ -366,7 +351,7 @@ class TarotPlugin:
                 st = self._get_state(bridge)
                 self._sync_titlebar_button(bridge, st["enabled"])
             return {
-                "page": self._build_page(surface, st, status=status),
+                "page": self._build_page(st, status=status),
                 "values": {"tarot_enabled": bool(st["enabled"])},
             }
 
@@ -400,7 +385,7 @@ class TarotPlugin:
                     "ok": True,
                     "tone": tone,
                     "status": status,
-                    "page": self._build_page(surface, st, status=status),
+                    "page": self._build_page(st, status=status),
                     "values": {"tarot_enabled": bool(st["enabled"])},
                 }
 
@@ -409,7 +394,7 @@ class TarotPlugin:
                 "ok": False,
                 "tone": "warning",
                 "status": self._tr("未知操作", "Unknown action"),
-                "page": self._build_page(surface, st),
+                "page": self._build_page(st),
                 "values": {"tarot_enabled": bool(st["enabled"])},
             }
 
