@@ -311,7 +311,7 @@ jobs:
                       pages[surface] = page
 
                   rendered = rpc("plugin.render", {
-                      "surface": "settings_section:tarot-mode",
+                      "surface": "settings_page",
                       "values": {"tarot_enabled": True},
                   })
                   check_text(rendered["page"], locale, f"{locale} toggle")
