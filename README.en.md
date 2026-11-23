@@ -8,4 +8,4 @@
 - **Three ritual rooms**: Past/Now/Future 3-card spread, Daily Card prompts, and 22 Major Arcana gallery.
 - **Zero lock-in**: Toggle from the titlebar moon icon or Command Palette; press `Esc` back to your cursor.
 
-**Install**: Open Block Settings -> App Store and search **Tarot Mode**, or enter `eachann1024/block-tarot`.
+**Install**: Open Block Settings -> App Store and search **Tarot Mode**, or enter `blockmd-plugins/block-tarot`.
