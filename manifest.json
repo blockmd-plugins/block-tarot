@@ -2,6 +2,7 @@
   "app": "blockmd",
   "schema_version": 1,
   "id": "block-tarot",
+  "category": "appearance",
   "name": {
     "zh": "塔罗模式",
     "en": "Tarot Mode"
