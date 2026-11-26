@@ -7,14 +7,15 @@ import re
 import sys
 
 if hasattr(sys.stdin, "reconfigure"):
-    sys.stdin.reconfigure(encoding="utf-8")
+    sys.stdin.reconfigure(encoding="utf-8", errors="replace")
 if hasattr(sys.stdout, "reconfigure"):
-    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 STORAGE_KEY = "tarot_pref"
 SETTINGS_PAGE_SURFACE = "settings_page"
 SUPPORTED_SURFACES = {SETTINGS_PAGE_SURFACE}
 TITLEBAR_BUTTON_ID = "tarot-toggle"
+FALLBACK_RPC_CODES = (-32601, -32005, -32004, -32003)
 
 CHINESE_TEXT = re.compile(
     r"[\u3000-\u303f\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff"
@@ -27,6 +28,16 @@ ROOM_LABELS = {
     "daily": ("每日一牌", "Daily Card"),
     "deck": ("牌册", "Arcana Deck"),
 }
+
+
+def _safe_int(value, default):
+    """Parse integer values from host payloads without failing on bad types."""
+    if value is None or isinstance(value, bool):
+        return default
+    try:
+        return int(value)
+    except (TypeError, ValueError, OverflowError):
+        return default
 
 
 class HostRPCError(RuntimeError):
@@ -59,11 +70,22 @@ class HostBridge:
             line = line.strip()
             if not line:
                 continue
-            msg = json.loads(line)
+            try:
+                msg = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(msg, dict):
+                continue
             if str(msg.get("id")) == req_id:
                 if msg.get("error"):
                     err = msg["error"]
-                    raise HostRPCError(int(err.get("code", -32000)), str(err.get("message", "host error")))
+                    if isinstance(err, dict):
+                        code = _safe_int(err.get("code"), -32000)
+                        message = str(err.get("message", "host error"))
+                    else:
+                        code = -32000
+                        message = str(err)
+                    raise HostRPCError(code, message)
                 return msg.get("result", {})
 
     def serve(self, handler, localize_error):
@@ -74,11 +96,19 @@ class HostBridge:
             line = line.strip()
             if not line:
                 continue
-            req = json.loads(line)
+            try:
+                req = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(req, dict):
+                continue
             method = req.get("method")
             req_id = req.get("id")
+            params = req.get("params")
+            if not isinstance(params, dict):
+                params = {}
             try:
-                result = handler(self, method, req.get("params") or {})
+                result = handler(self, method, params)
                 self.send({"jsonrpc": "2.0", "id": req_id, "result": result})
                 if method == "plugin.shutdown":
                     break
@@ -136,10 +166,10 @@ class TarotPlugin:
         room = str(raw.get("room") or "writing").strip().lower()
         if room not in ROOM_LABELS:
             room = "writing"
-        total = int(raw.get("total") or 22)
+        total = _safe_int(raw.get("total"), 22)
         if total <= 0:
             total = 22
-        collected = max(0, min(total, int(raw.get("collected") or 0)))
+        collected = max(0, min(total, _safe_int(raw.get("collected"), 0)))
         self.cached_enabled = enabled
         self.cached_room = room
         return {
@@ -158,7 +188,7 @@ class TarotPlugin:
             res = bridge.call_host("host.ui.tarot_state", {})
             return self._normalize_state(res)
         except HostRPCError as exc:
-            if exc.code in (-32601, -32005):
+            if exc.code in FALLBACK_RPC_CODES:
                 return self._fallback_state()
             raise
 
@@ -200,7 +230,7 @@ class TarotPlugin:
             self._sync_titlebar_button(bridge, st["enabled"])
             return st, True
         except HostRPCError as exc:
-            if exc.code in (-32601, -32005):
+            if exc.code in FALLBACK_RPC_CODES:
                 next_on = (not self.cached_enabled) if toggle else (bool(enabled) if enabled is not None else True)
                 self._save_pref(bridge, next_on)
                 if room in ROOM_LABELS:
@@ -315,8 +345,15 @@ class TarotPlugin:
         if method == "plugin.initialize":
             self.plugin_id = str(params.get("plugin_id") or "block-tarot")
             self.locale = str(params.get("locale") or "zh")
-            caps = set(params.get("ui_capabilities") or [])
-            self.metric_tone = "metric_tone" in caps
+            raw_caps = params.get("ui_capabilities")
+            if isinstance(raw_caps, (list, tuple, set)):
+                self.metric_tone = "metric_tone" in raw_caps
+            elif isinstance(raw_caps, dict):
+                self.metric_tone = bool(raw_caps.get("metric_tone"))
+            elif isinstance(raw_caps, str):
+                self.metric_tone = raw_caps.strip() == "metric_tone"
+            else:
+                self.metric_tone = False
 
             try:
                 stored = bridge.call_host("host.storage.get", {"key": STORAGE_KEY})
