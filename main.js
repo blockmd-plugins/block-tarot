@@ -731,7 +731,14 @@ serve((method, params) => {
     if (method === 'plugin.command') {
       const cmdId = String(params.command_id || '');
       if (cmdId === 'toggle_tarot') {
-        const supported = setThemeSkin(!state.store.skin_enabled);
+        const next = !state.store.skin_enabled;
+        const supported = setThemeSkin(next);
+        // Entering Tarot Mode also opens the card table; leaving it closes the stage.
+        if (next) {
+          openStage('table');
+        } else {
+          safeCallHost('host.stage.close', { id: STAGE_ID });
+        }
         refreshSettingsSurface();
         const status = !supported
           ? t('已更新午夜铜版皮肤偏好', 'Updated Midnight Copperplate preference')
