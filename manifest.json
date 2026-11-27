@@ -11,49 +11,86 @@
   "author": "Block Community",
   "repo": "blockmd-plugins/block-tarot",
   "summary": {
-    "zh": "午夜铜版塔罗皮肤与写作仪式：牌桌三张牌阵、每日一牌反问、大阿卡纳牌册与速记换肤",
-    "en": "Midnight Copperplate tarot skin and writing rituals: 3-card spread, daily card reflection, 22 Major Arcana deck, and Quick Note skin"
+    "zh": "复古暗金塔罗主题与灵感抽卡工具，为写作换装并附带每日一牌与三张牌阵",
+    "en": "Retro dark-gold Tarot theme with daily card prompts and a 3-card spread for writing inspiration"
   },
   "entry": {
-    "command": [
-      "python3",
-      "-u",
-      "main.py"
-    ]
+    "js": "main.js"
   },
   "permissions": [
     "storage",
     "ui:titlebar",
     "ui:commands",
     "ui:notify",
-    "events:workspace"
+    "ui:appearance",
+    "events:workspace",
+    "events:note_saved",
+    "notes:read",
+    "ai:complete"
   ],
   "permission_reasons": {
     "storage": {
-      "zh": "保存塔罗模式开关偏好，在重启后恢复状态",
-      "en": "Save Tarot Mode toggle preference across restarts"
+      "zh": "记住你是否开启了塔罗模式，下次打开软件时自动恢复",
+      "en": "Remember whether Tarot Mode is on so it restores next time you open Block"
     },
     "ui:titlebar": {
-      "zh": "在顶栏挂载塔罗模式月亮快捷切换按钮",
-      "en": "Show the Tarot Mode moon toggle button in the titlebar"
+      "zh": "在顶栏放一颗月亮按钮，点一下就能切换塔罗模式",
+      "en": "Add a moon button to the top bar to switch Tarot Mode on or off"
     },
     "ui:commands": {
-      "zh": "向命令面板注册切换塔罗模式与打开各仪式房间的快捷命令",
-      "en": "Register command palette actions for Tarot Mode and ritual rooms"
+      "zh": "在命令面板加入快捷入口，直接打开牌桌、每日一牌或牌册",
+      "en": "Add Command Palette shortcuts to toggle Tarot Mode or open the card views"
     },
     "ui:notify": {
-      "zh": "切换塔罗模式或进入仪式房间时显示状态提示",
-      "en": "Show status feedback when toggling Tarot Mode or opening ritual rooms"
+      "zh": "开启、关闭塔罗模式或切换画面时给出简短提示",
+      "en": "Show a brief notice when switching Tarot Mode or opening a card view"
+    },
+    "ui:appearance": {
+      "zh": "为编辑区、侧栏、AI 区域和速记小窗换上复古暗金塔罗主题皮肤",
+      "en": "Apply the Midnight Copperplate theme skin to the editor, sidebar, AI area, and Quick Note"
     },
     "events:workspace": {
-      "zh": "监听语言与主题切换事件，同步更新顶栏按钮与界面状态",
-      "en": "Listen to locale and theme change events to sync button and UI state"
+      "zh": "切换中英文或主题颜色时，让塔罗按钮和界面同步更新",
+      "en": "Keep the Tarot button and views in sync when you switch language or theme"
+    },
+    "events:note_saved": {
+      "zh": "保存笔记时自动收录对应的大阿卡纳牌面并刷新牌册收集进度",
+      "en": "Automatically collect the matching Major Arcana card and refresh Deck progress when you save a note"
+    },
+    "notes:read": {
+      "zh": "读取笔记标题与摘要用于抽牌、每日一牌和牌册，不会改动任何笔记",
+      "en": "Read note titles and excerpts for card draws, Daily Card, and Deck without modifying notes"
+    },
+    "ai:complete": {
+      "zh": "按需为你串讲三张牌阵的写作启发，或在每日一牌提出反方追问",
+      "en": "Generate writing insights for your 3-card spread or devil's advocate questions on your Daily Card"
     }
   },
   "surfaces": [
     "settings_page"
   ],
   "contributes": {
+    "themes": [
+      {
+        "id": "midnight-copperplate",
+        "title": {
+          "zh": "午夜铜版",
+          "en": "Midnight Copperplate"
+        },
+        "file": "theme-skin.json"
+      }
+    ],
+    "stages": [
+      {
+        "id": "tarot-stage",
+        "title": {
+          "zh": "塔罗牌桌",
+          "en": "Tarot Stage"
+        },
+        "entry": "web/index.html",
+        "full_window": true
+      }
+    ],
     "titlebar_buttons": [
       {
         "id": "tarot-toggle",
